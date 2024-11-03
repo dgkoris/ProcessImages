@@ -1,4 +1,5 @@
 #include "SharedMemoryReader.h"
+#include "Constants.h"
 #include "Utilities.h"
 #include <sstream>
 #include <stdexcept>
@@ -21,16 +22,15 @@ SharedMemoryReader::~SharedMemoryReader() {
 }
 
 LPVOID SharedMemoryReader::MapMemory(DWORD offset, DWORD size) const {
-    LPVOID pBuf = MapViewOfFile(hMapFile_, FILE_MAP_READ, 0, offset, offset + size);
+    DWORD alignedOffset = (offset / MAPPING_SIZE) * MAPPING_SIZE;
+    DWORD delta = offset - alignedOffset;
+    LPVOID pBuf = MapViewOfFile(hMapFile_, FILE_MAP_READ, 0, alignedOffset, delta + size);
 
     if (pBuf == nullptr) {
         std::cerr << "Failed to map memory at offset " << offset << " with size " << size << ". Error code: " << GetLastError() << "\n";
     }
-    else {
-        std::cout << "Mapped memory at offset: " << offset << ", size: " << size << "\n";
-    }
 
-    return pBuf;
+    return static_cast<unsigned char*>(pBuf) + delta;
 }
 
 void SharedMemoryReader::UnmapMemory(LPVOID pBuf) const {

@@ -1,10 +1,10 @@
 #include <iostream>
-#include <vector>
 #include <iomanip>
+#include <numeric>
+#include "Constants.h"
 #include "SharedMemoryReader.h"
-
-const std::string SHARED_MEMORY_NAME = "Local\\SharedMemoryImages";
-constexpr size_t CAPTURED_MEMORY_SIZE = 10 * 1024; // The size of the memory to capture from the shared memory segment.
+#include "ImageDeserialiser.h"
+#include "ImageData.h"
 
 /// <summary>
 /// Entry point of the application.
@@ -13,27 +13,23 @@ constexpr size_t CAPTURED_MEMORY_SIZE = 10 * 1024; // The size of the memory to 
 int main() {
     try {
         SharedMemoryReader sharedMemory(SHARED_MEMORY_NAME);
+        ImageDeserialiser deserialiser(sharedMemory);
 
-        LPVOID pBuf = sharedMemory.MapMemory(0, CAPTURED_MEMORY_SIZE);
+        int numberOfImages = deserialiser.ReadNumberOfImages();
+        std::vector<ImageData> images = deserialiser.ReadAllImagesMetadata(numberOfImages);
+        deserialiser.ReadAllImagesData(images);
 
-        if (!pBuf) {
-            std::cerr << "Failed to map shared memory.\n";
-            return 1;
+        int totalSize = 0;
+        for (const auto& image : images) {
+            std::cout << "Loaded image: " << std::left << std::setw(25) << image.name
+                << std::setw(10) << image.size << "bytes  ("
+                << image.imageDimensions.width << "x" << image.imageDimensions.height << ")\n";
+            totalSize += image.size;
         }
 
-        unsigned char* rawDataPtr = static_cast<unsigned char*>(pBuf);
-        std::vector<unsigned char> rawData(rawDataPtr, rawDataPtr + CAPTURED_MEMORY_SIZE);
-
-        std::cout << "Test reading shared memory data:\n";
-        for (size_t i = 0; i < rawData.size(); ++i) {
-            std::cout << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-                << static_cast<int>(rawData[i]) << " ";
-            if ((i + 1) % 16 == 0) std::cout << "\n";
-        }
-        std::cout << std::dec << "\n";
-
-        sharedMemory.UnmapMemory(pBuf);
-
+        std::cout << "\nTotal images: " << std::left << std::setw(24) << numberOfImages
+            << std::setw(10) << totalSize << " bytes\n";
+        std::cout << "\nData read from shared memory: '" << SHARED_MEMORY_NAME << "'.\n\n";
         std::cout << "Press Enter to exit...\n";
         std::cin.get();
     }
