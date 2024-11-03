@@ -1,41 +1,46 @@
 #include <iostream>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
 #include <iomanip>
-#include "ImageData.h"
-#include "Dimensions.h"
+#include "SharedMemoryReader.h"
 
+const std::string SHARED_MEMORY_NAME = "Local\\SharedMemoryImages";
+constexpr size_t CAPTURED_MEMORY_SIZE = 10 * 1024; // The size of the memory to capture from the shared memory segment.
+
+/// <summary>
+/// Entry point of the application.
+/// </summary>
+/// <returns>Returns 0 on success or 1 on failure.</returns>
 int main() {
+    try {
+        SharedMemoryReader sharedMemory(SHARED_MEMORY_NAME);
 
-    // Create fake image data for testing:
-    std::string name = "TestImage.bmp";
-    int size = 1024;
-    Dimensions dimensions(100, 50);
+        LPVOID pBuf = sharedMemory.MapMemory(0, CAPTURED_MEMORY_SIZE);
 
-    // Vector of random bytes between 0 and 255
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
-    std::vector<unsigned char> data(size);
-    for (auto& byte : data) {
-        byte = std::rand() % 256;
-    }
-
-    ImageData image(name, size, dimensions, data);
-
-    std::cout << "Image Data:\n" << image.to_string() << std::endl;
-
-    std::cout << "\n";
-    for (size_t i = 0; i < data.size(); ++i) {
-        // Print each byte in hexadecimal format
-        std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << static_cast<int>(data[i]) << " ";
-
-        if ((i + 1) % 16 == 0) {
-            std::cout << "\n";
+        if (!pBuf) {
+            std::cerr << "Failed to map shared memory.\n";
+            return 1;
         }
+
+        unsigned char* rawDataPtr = static_cast<unsigned char*>(pBuf);
+        std::vector<unsigned char> rawData(rawDataPtr, rawDataPtr + CAPTURED_MEMORY_SIZE);
+
+        std::cout << "Test reading shared memory data:\n";
+        for (size_t i = 0; i < rawData.size(); ++i) {
+            std::cout << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+                << static_cast<int>(rawData[i]) << " ";
+            if ((i + 1) % 16 == 0) std::cout << "\n";
+        }
+        std::cout << std::dec << "\n";
+
+        sharedMemory.UnmapMemory(pBuf);
+
+        std::cout << "Press Enter to exit...\n";
+        std::cin.get();
     }
-    std::cout << std::dec << std::endl;
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+        return 1;
+    }
 
     return 0;
 }
