@@ -1,41 +1,42 @@
 #include <iostream>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
 #include <iomanip>
+#include <numeric>
+#include "Constants.h"
+#include "SharedMemoryReader.h"
+#include "ImageDeserialiser.h"
 #include "ImageData.h"
-#include "Dimensions.h"
 
+/// <summary>
+/// Entry point of the application.
+/// </summary>
+/// <returns>Returns 0 on success or 1 on failure.</returns>
 int main() {
+    try {
+        SharedMemoryReader sharedMemory(SHARED_MEMORY_NAME);
+        ImageDeserialiser deserialiser(sharedMemory);
 
-    // Create fake image data for testing:
-    std::string name = "TestImage.bmp";
-    int size = 1024;
-    Dimensions dimensions(100, 50);
+        int numberOfImages = deserialiser.ReadNumberOfImages();
+        std::vector<ImageData> images = deserialiser.ReadAllImagesMetadata(numberOfImages);
+        deserialiser.ReadAllImagesData(images);
 
-    // Vector of random bytes between 0 and 255
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
-    std::vector<unsigned char> data(size);
-    for (auto& byte : data) {
-        byte = std::rand() % 256;
-    }
-
-    ImageData image(name, size, dimensions, data);
-
-    std::cout << "Image Data:\n" << image.to_string() << std::endl;
-
-    std::cout << "\n";
-    for (size_t i = 0; i < data.size(); ++i) {
-        // Print each byte in hexadecimal format
-        std::cout << std::hex << std::setw(2) << std::setfill('0')
-            << static_cast<int>(data[i]) << " ";
-
-        if ((i + 1) % 16 == 0) {
-            std::cout << "\n";
+        int totalSize = 0;
+        for (const auto& image : images) {
+            std::cout << "Loaded image: " << std::left << std::setw(25) << image.name
+                << std::setw(10) << image.size << "bytes  ("
+                << image.imageDimensions.width << "x" << image.imageDimensions.height << ")\n";
+            totalSize += image.size;
         }
+
+        std::cout << "\nTotal images: " << std::left << std::setw(24) << numberOfImages
+            << std::setw(10) << totalSize << " bytes\n";
+        std::cout << "\nData read from shared memory: '" << SHARED_MEMORY_NAME << "'.\n\n";
+        std::cout << "Press Enter to exit...\n";
+        std::cin.get();
     }
-    std::cout << std::dec << std::endl;
+    catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+        return 1;
+    }
 
     return 0;
 }
