@@ -1,10 +1,11 @@
 #include <iostream>
 #include <iomanip>
 #include <numeric>
-#include "Constants.h"
 #include "SharedMemoryReader.h"
 #include "ImageDeserialiser.h"
 #include "ImageData.h"
+
+static constexpr char SHARED_MEMORY_NAME[] = "Local\\SharedMemoryImages";
 
 /// <summary>
 /// Entry point of the application.

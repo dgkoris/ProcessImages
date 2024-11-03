@@ -1,5 +1,4 @@
 #include "SharedMemoryReader.h"
-#include "Constants.h"
 #include "Utilities.h"
 #include <sstream>
 #include <stdexcept>
@@ -21,13 +20,40 @@ SharedMemoryReader::~SharedMemoryReader() {
     }
 }
 
+int SharedMemoryReader::ReadInt(int& offset) const {
+    LPVOID pBuf = MapMemory(offset, sizeof(int));
+    int value;
+    std::memcpy(&value, pBuf, sizeof(int));
+    UnmapMemory(pBuf);
+    offset += sizeof(int);
+    return value;
+}
+
+std::string SharedMemoryReader::ReadString(int length, int& offset) const {
+    LPVOID pBuf = MapMemory(offset, length);
+    std::string value(static_cast<char*>(pBuf), length);
+    UnmapMemory(pBuf);
+    offset += length;
+    return value;
+}
+
+std::vector<unsigned char> SharedMemoryReader::ReadBytes(int length, int& offset) const {
+    LPVOID pBuf = MapMemory(offset, length);
+    std::vector<unsigned char> value(static_cast<unsigned char*>(pBuf), static_cast<unsigned char*>(pBuf) + length);
+    UnmapMemory(pBuf);
+    offset += length;
+    return value;
+}
+
 LPVOID SharedMemoryReader::MapMemory(DWORD offset, DWORD size) const {
     DWORD alignedOffset = (offset / MAPPING_SIZE) * MAPPING_SIZE;
     DWORD delta = offset - alignedOffset;
     LPVOID pBuf = MapViewOfFile(hMapFile_, FILE_MAP_READ, 0, alignedOffset, delta + size);
 
     if (pBuf == nullptr) {
-        std::cerr << "Failed to map memory at offset " << offset << " with size " << size << ". Error code: " << GetLastError() << "\n";
+        std::ostringstream oss;
+        oss << "Failed to map memory at offset " << offset << " with size " << size << ". Error code: " << GetLastError();
+        throw std::runtime_error(oss.str());
     }
 
     return static_cast<unsigned char*>(pBuf) + delta;

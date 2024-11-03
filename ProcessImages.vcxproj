@@ -137,7 +137,6 @@
     <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Constants.h" />
     <ClInclude Include="Dimensions.h" />
     <ClInclude Include="ImageData.h" />
     <ClInclude Include="ImageDeserialiser.h" />

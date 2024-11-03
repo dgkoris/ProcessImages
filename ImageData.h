@@ -12,7 +12,7 @@ public:
     const std::string name;
     const int size;
     const Dimensions imageDimensions;
-    const std::vector<unsigned char> data;
+    std::vector<unsigned char> data;
 
     /// <summary>
     /// Initialises an ImageData instance.
