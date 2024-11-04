@@ -5,8 +5,11 @@
 #include "ImageDeserialiser.h"
 #include "ImageData.h"
 #include "ImageAnalysis.h"
+#include "SharedMemoryWriter.h"
 
 static constexpr char SHARED_MEMORY_NAME[] = "Local\\SharedMemoryImages";
+static constexpr char SHARED_MEMORY_RESULTS[] = "Local\\SharedMemoryResults";
+static constexpr int SHARED_MEMORY_RESULTS_SIZE = 1024 * 1024 * 100; // 100MB of memory
 
 /// <summary>
 /// Entry point of the application.
@@ -33,9 +36,23 @@ int main() {
             << std::setw(10) << totalSize << " bytes\n";
         std::cout << "\nData read from shared memory: '" << SHARED_MEMORY_NAME << "'.\n\n";
 
+        std::vector<unsigned int> analysisResults;
         for (const auto& image : images) {
             ImageAnalysis imageAnalysis(image);
             imageAnalysis.DisplayResults();
+
+            auto mostCommonColours = imageAnalysis.GetMostCommonColoursPerRow();
+            analysisResults.insert(analysisResults.end(), mostCommonColours.begin(), mostCommonColours.end());
+        }
+
+        if (analysisResults.size() > 0) {
+            SharedMemoryWriter resultMemory(SHARED_MEMORY_RESULTS, true, SHARED_MEMORY_RESULTS_SIZE);
+            int offset = 0;
+
+            resultMemory.WriteInt(static_cast<int>(analysisResults.size()), offset);
+            resultMemory.WriteBytes(analysisResults, offset);
+
+            std::cout << "\nResults written to separate shared memory: '" << SHARED_MEMORY_RESULTS << "' at offset " << offset << ".\n";
         }
 
         std::cout << "Press Enter to exit...\n";

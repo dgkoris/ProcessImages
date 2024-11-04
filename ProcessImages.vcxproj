@@ -135,6 +135,7 @@
     <ClCompile Include="ImageDeserialiser.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SharedMemoryReader.cpp" />
+    <ClCompile Include="SharedMemoryWriter.cpp" />
     <ClCompile Include="Utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,6 +144,7 @@
     <ClInclude Include="ImageData.h" />
     <ClInclude Include="ImageDeserialiser.h" />
     <ClInclude Include="SharedMemoryReader.h" />
+    <ClInclude Include="SharedMemoryWriter.h" />
     <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
