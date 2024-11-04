@@ -4,6 +4,7 @@
 #include "SharedMemoryReader.h"
 #include "ImageDeserialiser.h"
 #include "ImageData.h"
+#include "ImageAnalysis.h"
 
 static constexpr char SHARED_MEMORY_NAME[] = "Local\\SharedMemoryImages";
 
@@ -31,6 +32,12 @@ int main() {
         std::cout << "\nTotal images: " << std::left << std::setw(24) << numberOfImages
             << std::setw(10) << totalSize << " bytes\n";
         std::cout << "\nData read from shared memory: '" << SHARED_MEMORY_NAME << "'.\n\n";
+
+        for (const auto& image : images) {
+            ImageAnalysis imageAnalysis(image);
+            imageAnalysis.DisplayResults();
+        }
+
         std::cout << "Press Enter to exit...\n";
         std::cin.get();
     }
