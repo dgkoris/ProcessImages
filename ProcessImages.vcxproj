@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Dimensions.cpp" />
+    <ClCompile Include="ImageAnalysis.cpp" />
     <ClCompile Include="ImageData.cpp" />
     <ClCompile Include="ImageDeserialiser.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -138,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Dimensions.h" />
+    <ClInclude Include="ImageAnalysis.h" />
     <ClInclude Include="ImageData.h" />
     <ClInclude Include="ImageDeserialiser.h" />
     <ClInclude Include="SharedMemoryReader.h" />
