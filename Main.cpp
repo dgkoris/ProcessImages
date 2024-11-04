@@ -49,7 +49,15 @@ int main() {
             SharedMemoryWriter resultMemory(SHARED_MEMORY_RESULTS, true, SHARED_MEMORY_RESULTS_SIZE);
             int offset = 0;
 
-            resultMemory.WriteInt(static_cast<int>(analysisResults.size()), offset);
+            // Number of results
+            int resultCount = static_cast<int>(analysisResults.size());
+            resultMemory.WriteInt(resultCount, offset);
+
+            // Size of each result entry
+            int entrySize = sizeof(analysisResults[0]);
+            resultMemory.WriteInt(entrySize, offset);
+
+            // Write the actual result data
             resultMemory.WriteBytes(analysisResults, offset);
 
             std::cout << "\nResults written to separate shared memory: '" << SHARED_MEMORY_RESULTS << "' at offset " << offset << ".\n";
